@@ -22,13 +22,11 @@ contract DemocraticParameterizerFactory {
   /// voting list and an initial parameterizer voting period.
   /// @param _voterList some contract with an `isWhitelisted` method that accepts a single
   /// bytes32 argument and returns a boolean.
-  /// @param _parameterizerVotingPeriod an initial parameterization on this contract's only
-  /// self-referential parameter.
-  function createDemocraticParameterizer(address _voterList, uint _parameterizerVotingPeriod,
-                                         bytes32[] params, uint[] paramValues)
+  function createDemocraticParameterizer(address _voterList,
+                                         bytes32[] _params, uint[] _paramValues)
   public returns (DemocraticParameterizer dp) {
     dp = DemocraticParameterizer(proxyFactory.createProxy(canonizedDemocraticParameterizer, ""));
-    dp.init(_voterList, _parameterizerVotingPeriod, params, paramValues);
+    dp.init(_voterList, _params, _paramValues);
 
     emit newDemocraticParameterizer(msg.sender, address(dp), _voterList);
   }

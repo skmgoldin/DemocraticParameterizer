@@ -35,15 +35,11 @@ contract DemocraticParameterizer {
   /// @dev initialize the contract
   /// @param _voterList some contract with an `isWhitelisted` method that accepts a single
   /// bytes32 argument and returns a boolean.
-  /// @param _parameterizerVotingPeriod an initial parameterization on this contract's only
-  /// self-referential parameter.
-  function init(address _voterList, uint _parameterizerVotingPeriod,
-                bytes32[] _params, uint[] _paramValues) public {
+  function init(address _voterList, bytes32[] _params, uint[] _paramValues) public {
     require(_voterList != 0 && address(voterList) == 0);
     require(_params.length == _paramValues.length);
 
     voterList = VoterListInterface(_voterList);
-    set("parameterizerVotingPeriod", _parameterizerVotingPeriod);
 
     for(uint i = 0; i < _params.length; i++) {
       params[_params[i]] = _paramValues[i]; 

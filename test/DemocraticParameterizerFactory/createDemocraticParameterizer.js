@@ -21,7 +21,10 @@ contract('DemocraticParameterizerFactory', () => {
       const parameterizerVotingPeriod = '420';
 
       const receipt =
-        await dpf.createDemocraticParameterizer(voterList, parameterizerVotingPeriod, [0], [0]);
+        await dpf.createDemocraticParameterizer(
+          voterList,
+          [solkeccak('parameterizerVotingPeriod')], [parameterizerVotingPeriod],
+        );
 
       const dp = DemocraticParameterizer.at(receipt.logs[0].args.democraticParameterizer);
 
@@ -45,7 +48,7 @@ contract('DemocraticParameterizerFactory', () => {
         const devilNumber = solkeccak('devilNumber');
 
         const receipt =
-          await dpf.createDemocraticParameterizer(1, 1, [happyNumber, devilNumber], [420, 666]);
+          await dpf.createDemocraticParameterizer(1, [happyNumber, devilNumber], [420, 666]);
 
         const dp = DemocraticParameterizer.at(receipt.logs[0].args.democraticParameterizer);
 

@@ -65,7 +65,10 @@ contract('DemocraticParameterizer', (accounts) => {
 
       // deploy a democratic parameterizer
       const dpFactoryReceipt =
-        await dpFactory.createDemocraticParameterizer(registry.address, 1000, [0], [0]);
+        await dpFactory.createDemocraticParameterizer(
+          registry.address,
+          [solkeccak('parameterizerVotingPeriod')], [1000],
+        );
 
       // Get the newly deployed democratic parameterizer instance
       dp = DemocraticParameterizer.at(dpFactoryReceipt.logs[0].args.democraticParameterizer);
