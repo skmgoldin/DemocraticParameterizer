@@ -1,5 +1,7 @@
 # Democratic Parameterizer
 
+[ ![Codeship Status for skmgoldin/DemocraticParameterizer](https://app.codeship.com/projects/1f2f3ac0-5516-0136-74b1-3eba15e419ba/status?branch=master)](https://app.codeship.com/projects/294486)
+
 A parameterizer that relies on a whitelist of voters who can make and vote on proposals to the parameterizer. Voting is in the clear and single stage. The only requirement of the voter whitelist is that it implement the interface `isWhitelisted(bytes32) returns (bool)`. A TCR satisfies this interface, for example.
 
 The parameterizer has one self-referential parameter which should not be overwritten for other purposes: `parameterizerVotingPeriod`, which is the period after a proposal is made during which it can be voted on. After the voting period ends, `finalizeProposal` can be called to either set or delete the proposal depending on the result.
