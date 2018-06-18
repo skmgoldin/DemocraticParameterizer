@@ -1,0 +1,14 @@
+{
+  "package_name": "democratic-parameterizer",
+  "version": "1.0.0",
+  "description": "A parameterizer that uses a TCR to get a voter whitelist",
+  "author": "Mike Goldin <mike.goldin@consensys.net>",
+  "keywords": [
+    "consensys",
+    "tcr"
+  ],
+  "dependencies": {
+    "tcr": "1.1.0"
+  },
+  "license": "Apache 2.0"
+}

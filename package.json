@@ -1,0 +1,32 @@
+{
+  "name": "democratic-parameterizer",
+  "version": "1.0.0",
+  "description": "A parameterizer that uses a TCR to get a voter whitelist",
+  "scripts": {
+    "install": "truffle install",
+    "compile": "truffle compile",
+    "publish": "truffle publish",
+    "coverage": "solidity-coverage",
+    "deploy-rinkeby": "truffle migrate --network rinkeby",
+    "deploy-ganache": "truffle migrate --network ganache",
+    "deploy-mainnet": "truffle migrate --network mainnet",
+    "test": "npm run lint ./ && truffle test",
+    "fix": "eslint --fix",
+    "lint": "eslint"
+  },
+  "author": "Mike Goldin <mike.goldin@consensys.net>",
+  "license": "Apache-2",
+  "dependencies": {
+    "ethjs-provider-http": "^0.1.6",
+    "ethjs-rpc": "0.2.0",
+    "truffle": "4.1.11",
+    "truffle-hdwallet-provider": "0.0.5",
+    "web3": "1.0.0-beta.34"
+  },
+  "devDependencies": {
+    "eslint": "4.15.0",
+    "eslint-config-airbnb-base": "12.1.0",
+    "eslint-plugin-import": "2.12.0",
+    "solidity-coverage": "0.5.4"
+  }
+}
