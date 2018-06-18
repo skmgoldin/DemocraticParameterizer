@@ -15,7 +15,7 @@ const rpc = new EthRPC(new HttpProvider('http://localhost:7545'));
 const solkeccak = web3.utils.soliditySha3;
 
 contract('DemocraticParameterizer', (accounts) => {
-  describe('Function: vote', () => {
+  describe('Function: finalizeProposal', () => {
     const [alice, bob, charlie, dale] = accounts;
 
     let dpFactory;
@@ -71,78 +71,93 @@ contract('DemocraticParameterizer', (accounts) => {
       dp = DemocraticParameterizer.at(dpFactoryReceipt.logs[0].args.democraticParameterizer);
     });
 
-    it('should not allow listed voters to vote on reparameterizations', async () => {
-      const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
-      const { propID } = receipt.logs[0].args;
-      try {
-        await dp.vote(propID, 1, { from: alice });
-      } catch (err) {
-        assert(err.toString().includes('revert'), err.toString());
-
-        return;
-      }
-
-      assert.fail();
-    });
-
-    it('should allow listed voters to vote on reparameterizations', async () => {
+    it('should not allow unlisted voters to finalize proposals', async () => {
       const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
       const { propID } = receipt.logs[0].args;
 
-      await dp.vote(propID, 1, { from: bob });
-      await dp.vote(propID, 1, { from: charlie });
-      const voteReceipt = await dp.vote(propID, 0, { from: dale });
-
-      const votesFor = voteReceipt.logs[0].args.votesFor.toString(10);
-      const votesAgainst = voteReceipt.logs[0].args.votesAgainst.toString(10);
-
-      assert.strictEqual(votesFor, '2');
-      assert.strictEqual(votesAgainst, '1');
-    });
-
-    it('should revert the proposal does not exist', async () => {
-      try {
-        await dp.vote(2666, 1, { from: bob });
-      } catch (err) {
-        assert(err.toString().includes('revert'), err.toString());
-
-        return;
-      }
-
-      assert(false, 'an vote was able to be cast for a proposal which does not exist');
-    });
-
-    it('should revert if the proposal voting period has ended', async () => {
-      const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
-      const { propID } = receipt.logs[0].args;
-
-      // Increase time past voting stage
       await rpc.sendAsync({ method: 'evm_increaseTime', params: [1001] });
 
       try {
-        await dp.vote(propID, 1, { from: bob });
+        await dp.finalizeProposal(propID, { from: alice });
       } catch (err) {
         assert(err.toString().includes('revert'), err.toString());
 
         return;
       }
 
-      assert(false, 'a voter was able to vote after the voting period ended');
+      assert(false, 'an unlisted voter was able to finalize a proposal');
     });
 
-    it('should revert if the user faction is neither 0 nor 1', async () => {
+    it('should allow listed voters to finalize proposals', async () => {
+      const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
+      const { propID } = receipt.logs[0].args;
+
+      await rpc.sendAsync({ method: 'evm_increaseTime', params: [1001] });
+      await dp.finalizeProposal(propID, { from: bob });
+    });
+
+    it('should not finalize a proposal which does not exist', async () => {
+      try {
+        await dp.finalizeProposal(2666, { from: bob });
+      } catch (err) {
+        assert(err.toString().includes('revert'), err.toString());
+
+        return;
+      }
+
+      assert(false, 'a proposal was finalized which does not exist');
+    });
+
+    it('should not finalize a proposal whose voting period has not ended', async () => {
       const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
       const { propID } = receipt.logs[0].args;
 
       try {
-        await dp.vote(propID, 80, { from: bob });
+        await dp.finalizeProposal(propID, { from: bob });
       } catch (err) {
         assert(err.toString().includes('revert'), err.toString());
 
         return;
       }
 
-      assert(false, 'a voter was able to vote in a non-existent faction');
+      assert(false, 'a proposal was finalized before its voting period ended');
+    });
+
+    it('should properly set state if a proposal is finalized which was accepted', async () => {
+      const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
+      const { propID } = receipt.logs[0].args;
+
+      await rpc.sendAsync({ method: 'evm_increaseTime', params: [1001] });
+      await dp.finalizeProposal(propID, { from: bob });
+
+      const storedX = await dp.get.call('x');
+      assert.strictEqual(storedX.toString(10), '420', 'a finalized proposal which was ' +
+        'accepted did not seem to update contract state');
+    });
+
+    it('should not alter state if a proposal is finalized which was rejected', async () => {
+      const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
+      const { propID } = receipt.logs[0].args;
+
+      await dp.vote(propID, 0, { from: bob });
+      await rpc.sendAsync({ method: 'evm_increaseTime', params: [1001] });
+      await dp.finalizeProposal(propID, { from: bob });
+
+      const storedX = await dp.get.call('x');
+      assert.strictEqual(storedX.toString(10), '0', 'a finalized proposal which was ' +
+        'rejected somehow altered contract state');
+    });
+
+    it('should not alter state if a proposal is finalized after its processBy date', async () => {
+      const receipt = await dp.proposeReparameterization('x', 420, { from: bob });
+      const { propID } = receipt.logs[0].args;
+
+      await rpc.sendAsync({ method: 'evm_increaseTime', params: [2001] });
+      await dp.finalizeProposal(propID, { from: bob });
+
+      const storedX = await dp.get.call('x');
+      assert.strictEqual(storedX.toString(10), '0', 'a finalized proposal which was ' +
+        'processed after its processBy date somehow altered contract state');
     });
   });
 });
